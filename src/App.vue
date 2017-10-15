@@ -1,18 +1,39 @@
 <template>
   <div id="app">
     <h1>Simple chat</h1>
-    <ul>
-      <chat-message
-        v-for="(message, i) in chatMessages"
-        :key="i"
-        :message="message"/>
-    </ul>
-    <div>
-      <label>Say something:
+    <div v-if="!joined">
+      <label>
+        Please enter a username:
         <input
-          v-model="newMsg"
-          v-on:keyup.enter="message">
+          v-model="username"
+          v-on:keyup.enter="selectUserName">
       </label>
+        <button
+          v-show="username"
+          v-on:click="selectUserName">
+          Join chat
+        </button>
+    </div>
+    <div v-else>
+      <ul>
+        <chat-message
+          v-for="(message, i) in chatMessages"
+          :key="i"
+          :message="message"/>
+      </ul>
+      <div>
+        <label>Say something:
+          <input
+            v-model="newMsg"
+            v-on:keyup.enter="message">
+        </label>
+      </div>
+    </div>
+    <div v-if="joined && username">
+      <button
+        v-on:click="leaveRoom">
+        Leave chat
+      </button>
     </div>
   </div>
 </template>
@@ -28,7 +49,9 @@ export default {
     return {
       room: null,
       newMsg: '',
-      chatMessages: []
+      chatMessages: [],
+      joined: false,
+      username: null
     }
   },
   created: function() {
@@ -43,13 +66,32 @@ export default {
       },
       speak: (message) => {
         self.room.perform("speak", {message: message})
+      },
+      joinRoom: (username) => {
+        self.room.perform("join_room", {username: username})
+      },
+      leaveRoom: (username) => {
+        self.room.perform("leave_room", {username: username})
       }
     });
   },
   methods: {
     message: function() {
+      if (this.newMsg.length === 0) { return };
       this.room.speak(this.newMsg);
       this.newMsg = "";
+    },
+    selectUserName: function() {
+      this.chatMessages = [];
+      this.room.joinRoom(this.username);
+      this.joined = true;
+    },
+    leaveRoom: function() {
+      this.room.leaveRoom(this.username);
+      this.joined = false;
+      this.username = null;
+      this.$children = [];
+      this.chatMessages = [];
     }
   },
   components: {
