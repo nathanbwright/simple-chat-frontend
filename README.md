@@ -2,6 +2,8 @@
 
 > A Vue.js project
 
+> Developed with Node `6.11.0`
+
 ## Build Setup
 
 ``` bash
